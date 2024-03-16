@@ -1,36 +1,66 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+
+import { useSearch, useGetTodoList, useSortTask } from './hooks'
+
+import { requestAddTask, requestEditTask, requestDeleteTask } from './utils'
+
+import { Title, Search, Button } from './components'
 
 import s from './style.module.css'
 
 function App() {
 	const [isLoading, setIsLoading] = useState(true)
-	const [todoLists, setTodoLists] = useState([])
+	const [refreshListFlag, setRefreshListFlag] = useState(false)
+	const [valueSearch, setValueSearch] = useState('')
 
-	useEffect(() => {
-		document.body.classList.add('light')
-		fetch('https://jsonplaceholder.typicode.com/todos')
-			.then((response) => response.json())
-			.then((data) => {
-				setTodoLists(data)
-			})
-			.finally(() => setIsLoading(false))
-	}, [])
+	const refreshList = () => setRefreshListFlag(!refreshListFlag)
+
+	const { todoLists, setTodoLists } = useGetTodoList(setIsLoading, refreshListFlag)
+	const { resultSearch } = useSearch(todoLists, setIsLoading, valueSearch)
+
+	const { handleClickSort, sort } = useSortTask(todoLists, setTodoLists, refreshList)
+	const { handleClickAddTask } = requestAddTask(setIsLoading, refreshList)
+	const { handleClickEditTask } = requestEditTask(setIsLoading, refreshList)
+	const { handleClickDeleteTask } = requestDeleteTask(setIsLoading, refreshList)
 
 	return (
 		<>
 			<div className={s.container}>
-				<div className={s.header}>
-					<h1>Список дел</h1>
+				<Title />
+
+				<div className={s.change}>
+					<Search setValueSearch={setValueSearch} />
+
+					<Button onClick={handleClickAddTask} type={'add'} disabled={isLoading} />
+
+					<Button
+						type={'sort'}
+						onClick={handleClickSort}
+						disabled={isLoading}
+						sort={sort}
+					/>
 				</div>
+
 				{isLoading ? (
 					<div className={s.loader}></div>
 				) : (
 					<div className={s.content}>
-						{todoLists.map((todo, index) => (
-							<div key={index} className={s.list}>
-								{todo.title}
-							</div>
-						))}
+						{resultSearch.length === 0 ? (
+							<small className={s.emptyTodoList}>
+								{todoLists.length === 0
+									? 'На сегодня дел нет, может добавим?'
+									: 'Ничего не нашли!'}
+							</small>
+						) : (
+							(valueSearch ? resultSearch : todoLists).map((todo) => (
+								<div key={todo.id} className={s.contentTask} id={todo.id}>
+									<span className={s.text}>{todo.title}</span>
+
+									<Button onClick={handleClickEditTask} type={'edit'} />
+									<Button onClick={handleClickDeleteTask} type={'remove'} />
+								</div>
+							))
+						)}
 					</div>
 				)}
 			</div>
