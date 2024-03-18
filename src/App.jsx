@@ -10,18 +10,15 @@ import s from './style.module.css'
 
 function App() {
 	const [isLoading, setIsLoading] = useState(true)
-	const [refreshListFlag, setRefreshListFlag] = useState(false)
 	const [valueSearch, setValueSearch] = useState('')
 
-	const refreshList = () => setRefreshListFlag(!refreshListFlag)
+	const { todoLists, setTodoLists } = useGetTodoList(setIsLoading)
+	const { resultSearch, debouncedSearchTerm } = useSearch(todoLists, valueSearch)
 
-	const { todoLists, setTodoLists } = useGetTodoList(setIsLoading, refreshListFlag)
-	const { resultSearch } = useSearch(todoLists, setIsLoading, valueSearch)
-
-	const { handleClickSort, sort } = useSortTask(todoLists, setTodoLists, refreshList)
-	const { handleClickAddTask } = requestAddTask(setIsLoading, refreshList)
-	const { handleClickEditTask } = requestEditTask(setIsLoading, refreshList)
-	const { handleClickDeleteTask } = requestDeleteTask(setIsLoading, refreshList)
+	const { handleClickSort, sort, sortTodoLists } = useSortTask(todoLists, setTodoLists)
+	const { handleClickAddTask } = requestAddTask(setIsLoading)
+	const { handleClickEditTask } = requestEditTask(setIsLoading)
+	const { handleClickDeleteTask } = requestDeleteTask(setIsLoading)
 
 	return (
 		<>
@@ -45,21 +42,24 @@ function App() {
 					<div className={s.loader}></div>
 				) : (
 					<div className={s.content}>
-						{resultSearch.length === 0 ? (
+						{(debouncedSearchTerm && resultSearch.length === 0) ||
+						todoLists.length === 0 ? (
 							<small className={s.emptyTodoList}>
 								{todoLists.length === 0
 									? 'На сегодня дел нет, может добавим?'
 									: 'Ничего не нашли!'}
 							</small>
 						) : (
-							(valueSearch ? resultSearch : todoLists).map((todo) => (
-								<div key={todo.id} className={s.contentTask} id={todo.id}>
-									<span className={s.text}>{todo.title}</span>
+							(debouncedSearchTerm ? resultSearch : sort ? sortTodoLists : todoLists).map(
+								([id, { title }]) => (
+									<div key={id} className={s.contentTask} id={id}>
+										<span className={s.text}>{title}</span>
 
-									<Button onClick={handleClickEditTask} type={'edit'} />
-									<Button onClick={handleClickDeleteTask} type={'remove'} />
-								</div>
-							))
+										<Button onClick={handleClickEditTask} type={'edit'} />
+										<Button onClick={handleClickDeleteTask} type={'remove'} />
+									</div>
+								),
+							)
 						)}
 					</div>
 				)}

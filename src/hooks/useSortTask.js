@@ -1,7 +1,8 @@
 import { useState } from 'react'
 
-export const useSortTask = (todoLists, setTodoLists, refreshList) => {
+export const useSortTask = (todoLists) => {
 	const [sort, setSort] = useState(false)
+	const [sortTodoLists, setSortTodoLists] = useState([]) 
 
 	const sortToggle = () => setSort(!sort)
 
@@ -11,13 +12,13 @@ export const useSortTask = (todoLists, setTodoLists, refreshList) => {
 		if (!sort) {
 			sortList()
 		} else {
-			refreshList()
+			setSortTodoLists(todoLists)
 		}
 	}
 
 	const sortList = () => {
-		setTodoLists(todoLists.toSorted((a, b) => a.title.localeCompare(b.title)))
+		setSortTodoLists(todoLists.toSorted((a, b) => a[1].title.localeCompare(b[1].title)))
 	}
 
-	return { sort, handleClickSort }
+	return { sort, handleClickSort, sortTodoLists }
 }

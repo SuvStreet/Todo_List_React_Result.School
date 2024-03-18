@@ -1,14 +1,14 @@
-export const requestDeleteTask = ( setIsLoading, refreshList) => {
+import { ref, remove } from 'firebase/database'
+import { db } from '../firebase'
+
+export const requestDeleteTask = (setIsLoading) => {
 	const handleClickDeleteTask = (event) => {
 		const { id } = event.target.closest('div')
 
 		setIsLoading(true)
-		fetch(`http://localhost:3005/todos/${id}`, {
-			method: 'DELETE',
-		})
-			.then((response) => response.json())
-			.then(() => refreshList())
+
+		remove(ref(db, `todos/${id}`))
 	}
 
-  return { handleClickDeleteTask }
+	return { handleClickDeleteTask }
 }

@@ -1,21 +1,21 @@
-export const requestAddTask = (setIsLoading, refreshList) => {
+import { ref, push } from 'firebase/database'
+import { db } from '../firebase'
+
+export const requestAddTask = (setIsLoading) => {
 	const handleClickAddTask = () => {
 
 		const task = prompt('Введите задачу:')
 
-		if (task && task.trim() !== '') {
+		if (task?.trim()) {
 			setIsLoading(true)
-			fetch('http://localhost:3005/todos', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					title: task,
-				}),
+
+			const todoListRef = ref(db, 'todos')
+
+			push(todoListRef, {
+				title: task,
 			})
-				.then((response) => response.json())
-				.then(() => refreshList())
+
+			setIsLoading(false)
 		}
 	}
 

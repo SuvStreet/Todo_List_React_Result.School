@@ -2,25 +2,24 @@ import { useEffect, useState } from 'react'
 
 import useDebounce from './useDebounce'
 
-export const useSearch = ( todoLists, setIsLoading, valueSearch) => {
+export const useSearch = (todoLists, valueSearch) => {
 	const [resultSearch, setResultSearch] = useState([])
-	
+
 	const debouncedSearchTerm = useDebounce(valueSearch, 700)
 
 	useEffect(() => {
-		if (debouncedSearchTerm && debouncedSearchTerm.trim() !== '') {
-			setIsLoading(true)
-
-			fetch(`http://localhost:3005/todos?q=${debouncedSearchTerm}`)
-				.then((response) => response.json())
-				.then((data) => {
-					setResultSearch(data)
-				})
-				.finally(() => setIsLoading(false))
+		if (debouncedSearchTerm.trim() !== '') {
+			setResultSearch(() =>
+				todoLists.filter((todoList) => {
+					return todoList[1].title
+						.toLowerCase()
+						.includes(debouncedSearchTerm.toLowerCase())
+				}),
+			)
 		} else {
 			setResultSearch(todoLists)
 		}
 	}, [debouncedSearchTerm, todoLists])
 
-	return { resultSearch }
+	return { resultSearch, debouncedSearchTerm }
 }
